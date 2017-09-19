@@ -6,9 +6,9 @@ import time
 from datetime import datetime
 from pytz import timezone
 import texttable as tt
-import random
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
+# import random
 
 # Global constants
 
@@ -47,7 +47,6 @@ init_PL = [[0] * count, # WAP
 
 new_ledger = [init_selection, init_portfolio, init_history, init_PL]
 
-
 # Functions
 
 def welcome():
@@ -79,6 +78,7 @@ def get_price(ticker):
     
     return price
 
+
 def get_prices():
     prices = []
     for i in range(count):
@@ -108,7 +108,6 @@ def trade_menu(data):
     print("How many shares do you want to trade?")
     quantity = float(input())
     
-    
     # Record trade price
     price = get_price(tickers[k])
     
@@ -127,6 +126,7 @@ def trade_menu(data):
               "at $", price)
     
     return data
+
 
 def trading(buying, price, quantity, k, data):
     if buying == 1: 
@@ -149,6 +149,7 @@ def trading(buying, price, quantity, k, data):
     
     return data
 
+
 def update_blotter(side_index, price, quantity, k, data):
     # Record trade date
     now_time = datetime.now(timezone('US/Eastern'))
@@ -160,10 +161,8 @@ def update_blotter(side_index, price, quantity, k, data):
     data[2][2].append(quantity)
     data[2][3].append(price)    
     data[2][4].append(date) 
-
     
     return data
-
 
     
 def show_blotter(data):
@@ -196,9 +195,7 @@ def show_PL(data):
     print (s)
     return data   
 
-
-# Run Program
-
+# Function to run program
 def Execute():
     data = new_ledger
     welcome()
@@ -216,4 +213,5 @@ def Execute():
             done = True
             print("Thank you for trading with us!")
 
+# Run Program!
 Execute()
