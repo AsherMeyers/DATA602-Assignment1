@@ -1,3 +1,10 @@
+"""
+Below follows my code. Initially, it was a bit more elegant as it used global variables, 
+which let me refer to various lists by name, such as UPL, RPL, WAP, equities, etc. Now,
+those have all been subsumed into a list of lists to avoid the use of global variables.
+
+Note that k is an index of equities, with k = 0 being Apple, k = 1, Amazon, etc.
+"""
 # Install Python package tabulate
 # !pip install tabulate
 # !pip install texttable
@@ -24,7 +31,7 @@ side_dict = {0: 1, 1: -1}
 blot_headers = ("Ticker", "Side", "Quantity", "Executed Price", "Date / Time")
 PL_headers = ("Ticker", "Position", "Market", "WAP", "UPL", "RPL")
 
-date_format = "%m/%d/%y %H:%M:%S"
+date_format = "%m/%d/%y %H:%M:%S" # EST is used
 
 # Initial user selection
 init_selection = 0
