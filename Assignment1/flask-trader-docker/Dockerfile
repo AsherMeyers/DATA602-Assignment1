@@ -1,7 +1,6 @@
 FROM python:3.5
 
-RUN apk update && apk upgrade && \
-    apk add --no-cache git
+ADD DATA602-Assignment1.py /
 
 WORKDIR /usr/src/app
 
