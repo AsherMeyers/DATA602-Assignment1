@@ -231,8 +231,9 @@ def Execute():
 
 @app.route('/')
 def index():
-    print("DATA 602 - Welcome to Asher's flask-trader app!")
-    return(Execute())
+    print("DATA 602 - Welcome to Asher's flask-trader app! Testing again :)")
+    Execute()
+    return()
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0') # host='0.0.0.0' needed for docker
