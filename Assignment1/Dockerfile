@@ -1,7 +1,16 @@
 FROM python:3.5
 
-ADD DATA602-Assignment1.py /
+RUN apt-get update -qq && apt-get upgrade -y && \
+   apt-get install -y --no-install-recommends \ 
+       libatlas-base-dev gfortran\
+        python-pip
 
+RUN pip install --no-cache-dir pandas && \
+    pip install bs4 && \
+    pip install urllib.request
+    pip install pytz
+    pip install texttable
+    pip install datetime
 WORKDIR /usr/src/app
 
 COPY requirements.txt ./
