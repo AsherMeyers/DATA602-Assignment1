@@ -1,4 +1,3 @@
-import time
 from datetime import datetime
 from pytz import timezone
 import texttable as tt
@@ -67,7 +66,6 @@ new_ledger = [init_selection, init_portfolio, init_history, init_PL]
 def welcome():
     print("Welcome to the Trading Floor")
     print("For this program, you will enter numbers to select menu options")
-    time.sleep(1)
 
 def menu(data):
     print()
