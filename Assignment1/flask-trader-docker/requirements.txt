@@ -1,1 +1,7 @@
 Flask
+time
+datetime
+pytz
+texttable
+urllib.request
+bs4
