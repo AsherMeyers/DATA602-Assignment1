@@ -6,7 +6,7 @@ RUN apt-get update -qq && apt-get upgrade -y && \
         python-pip
 
 RUN pip install bs4 && \
-    pip install urllib.request && \
+    pip install requests && \
     pip install pytz && \
     pip install texttable && \
     pip install datetime
