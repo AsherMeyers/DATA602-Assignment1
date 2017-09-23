@@ -7,6 +7,7 @@ RUN apt-get update -qq && apt-get upgrade -y && \
 
 RUN pip install bs4 && \
     pip install requests && \
+    pip install lxml && \
     pip install pytz && \
     pip install texttable && \
     pip install datetime
