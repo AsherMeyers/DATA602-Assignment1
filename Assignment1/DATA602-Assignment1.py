@@ -77,8 +77,7 @@ def get_price(ticker):
     url = "https://finance.yahoo.com/quote/" + ticker
     stock_page = urlopen(url)
     soup = BeautifulSoup(stock_page, 'lxml')
-    price = float(soup.find('span', {'class': 
-        "Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)"}).text)
+    price = float(soup.find('span', {'class' :"Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)"}).text)
     
     # For error-checking, allows rapid fluctuation of stock prices
     # price = round(random.random()*200,2) 
