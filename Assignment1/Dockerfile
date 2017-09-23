@@ -5,8 +5,7 @@ RUN apt-get update -qq && apt-get upgrade -y && \
        libatlas-base-dev gfortran\
         python-pip
 
-RUN pip install --no-cache-dir pandas && \
-    pip install bs4 && \
+RUN pip install bs4 && \
     pip install urllib.request
     pip install pytz
     pip install texttable
