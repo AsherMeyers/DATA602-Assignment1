@@ -117,8 +117,17 @@ def trade_menu(data):
     # Record trade price
     price = get_price(tickers[k])
     
+    print("Are you sure you want to execute this trade of ", tickers[k],
+          "at a price of ", price, " per share?")
+    print("1. Yes")
+    print("2. No")
+    confirm = int(input)
+    
+    # Cancel Order
+    if confirm == 2:
+      print("Your trade has been canceled.")
     # Check that you have enough cash for the buy order
-    if data[1][count] < side * price * quantity:
+    elif data[1][count] < side * price * quantity:
         print("Buy cannot be executed, insufficient cash")
     # Check that you have enough shares for the sell order
     elif side == -1 and quantity > data[1][k]:
