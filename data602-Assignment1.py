@@ -1,222 +1,223 @@
-"""
-Below follows my code. Initially, it was a bit more elegant as it used global variables, 
-which let me refer to various lists by name, such as UPL, RPL, WAP, equities, etc. Now,
-those have all been subsumed into a list of lists to avoid the use of global variables.
-
-Note that k is an index of equities, with k = 0 being Apple, k = 1, Amazon, etc.
-"""
-# Install Python package tabulate
-# !pip install tabulate
-# !pip install texttable
-
-import time
-from datetime import datetime
-from pytz import timezone
-import texttable as tt
+import datetime
+import numpy as np
+from bs4 import BeautifulSoup 
 from urllib.request import urlopen
-from bs4 import BeautifulSoup
-# import random
+from tabulate import tabulate
 
-# Global constants
-
-# The stocks available
-tickers = ("AAPL", "AMZN", "MSFT", "INTC", "SNAP")
-count = len(tickers)
-
-# Trade Options: Buy & Sell
+# Global constants 
 sides = ("Buy", "Sell")
 side_dict = {0: 1, 1: -1}
+starting_cash = 10**7
 
-# Blotter and P/L Headings
-blot_headers = ("Ticker", "Side", "Quantity", "Executed Price", "Date / Time")
-PL_headers = ("Ticker", "Position", "Market", "WAP", "UPL", "RPL")
+# data = [portfolio, blotter, cash, user selection]
 
-date_format = "%m/%d/%y %H:%M:%S" # EST is used
+init_data = [np.array([["Ticker","Quantity","Price","WAP","UPL","RPL",
+                        "Total P/L"],
+                        ["AAPL", 0, 0, 0, 0, 0, 0],
+                        ["AMZN", 0, 0, 0, 0, 0, 0],
+                        ["INTC", 0, 0, 0, 0, 0, 0],
+                        ["MSFT", 0, 0, 0, 0, 0, 0],
+                        ["SNAP", 0, 0, 0, 0, 0, 0]], dtype = "O"),
+        np.array([["Equity","Buy/Sell","Quantity","Price","Date & Time", 
+                   "Cash After"]], 
+                 dtype = "O"),
+        starting_cash]
 
-# Initial user selection
-init_selection = 0
-
-# Initial portfolio of $10m and 0 shares;
-# Cash is last element in list
-init_portfolio = [0]*count + [10**7]
-
-# Initial history of past trades (i.e. nothing)
-init_history = [[], # Equity names
-                [], # Buy or Sell designation
-                [], # Quantities traded
-                [], # Equity Prices
-                []]  # Date of trades
-
-# Initial P/L Figures (i.e. nothing)
-init_PL = [[0] * count, # WAP
-           [0] * count, # UPL
-           [0] * count] # RPL
-
-new_ledger = [init_selection, init_portfolio, init_history, init_PL]
-
-# Functions
+# Helper functions definitions
 
 def welcome():
-    print("Welcome to the Trading Floor")
-    print("For this program, you will enter numbers to select menu options")
-    time.sleep(1)
+    print("Welcome to the Trading Floor", '\n', 
+          "For this program, you will enter numbers to select menu options",
+          '\n', sep ='')
 
-def menu(data):
-    print()
-    print("Please select an option")
-    print("1. Trade")
-    print("2. Show Blotter")
-    print("3. Show P/L")
-    print("4. Quit")
+def menu():
+    print("\nPlease select an option \n",
+          "1. Trade \n",
+          "2. Show Blotter \n", 
+          "3. Show P/L \n", 
+          "4. Quit")
     
-    data[0] = input()
-    return data
-    
-def get_price(ticker):
-    
-    url = "https://finance.yahoo.com/quote/" + ticker
-    stock_page = urlopen(url)
-    soup = BeautifulSoup(stock_page, 'lxml')
-    price = float(soup.find('span', {'class': 
-        "Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)"}).text)
-    
-    # For error-checking, allows rapid fluctuation of stock prices
-    # price = round(random.random()*200,2) 
-    
-    return price
+    selection = input()
+    return selection
 
-
-def get_prices():
-    prices = []
-    for i in range(count):
-        prices.append(get_price(tickers[i]))
-    return prices
-
-# Trade menu
 def trade_menu(data):    
     # User picks which stock to trade
-    print("Which equity would you like to trade?")
-    for i in range(count):
-        print(i+1,". ", tickers[i], sep = "")
+    print("Please enter the ticker symbol of your desired equity \n", "\n",
+          "Choices: \n",
+          "AAPL \n",
+          "AMZN\n",
+          "INTC\n",
+          "MSFT\n",
+          "SNAP\n",)
     
     # k = the index of the equity, e.g. 0 = AAPL, 1 = AMZN, etc.
-    k = int(input()) - 1
+    ticker = input().upper()
+        
 
     # User decides whether to buy or sell
-    print("Would you like to:")
-    print("1. Buy")
-    print("2. Sell")
+    print("Would you like to: \n 1. Buy \n 2. Sell")
     side_index =  int(input())-1
     
     # Assign side, 1 if buying, -1 if selling
     side = side_dict[side_index]
+    side_txt = sides[side_index]
 
     # User specifies trade quantity
     print("How many shares do you want to trade?")
     quantity = float(input())
     
     # Record trade price
-    price = get_price(tickers[k])
+    price = get_price(ticker)
     
+    # Request user confirmation of trade
+    print("Please type 1 to confirm the ", side_txt," of ", quantity, 
+          " shares of ", ticker, " at the current market price of ", 
+          "${:,.2f}".format(price), ", or press 0 to cancel.", sep ="")
+    
+    # Check if equity is already in portfolio
+    # If it exists, obtain its index
+    # If not, append it to the data frame
+    if np.any(data[0][:, 0] == ticker):
+        k = np.where(data[0][:,0] == ticker)[0][0]
+    else:
+        k = len(data[0][:,0])
+        data[0] = np.concatenate((data[0], 
+                np.array([[ticker, 0, price, price, 0, 0, 0]],dtype="O")))
+
+    if input() == '0':
+        print("Trade has been canceled")
     # Check that you have enough cash for the buy order
-    if data[1][count] < side * price * quantity:
+    elif data[2] < side * price * quantity:
         print("Buy cannot be executed, insufficient cash")
     # Check that you have enough shares for the sell order
-    elif side == -1 and quantity > data[1][k]:
-        print("Sell cannot be executed, insufficient shares")
     elif quantity < 0:
         print("Impossible trade quantity")
+    elif side == -1 and quantity > data[0][k,1]:
+        print("Sell cannot be executed, insufficient shares")    
     else: 
-        data = trading(side, price, quantity, k, data)
-        data = update_blotter(side_index, price, quantity, k, data)    
-        print("Congratulations, you traded", quantity, "shares", 
-              "at $", price)
+            #Update the portfolio dataframe
+            data[0] = trading(ticker, side, quantity, price, k, data[0])
+            
+            # Record trade date
+            date = str(datetime.datetime.now())[0:19]
+            
+            # Update cash on hand
+            data[2] -= quantity * price * side
+    
+            # Update blotter aka trade history
+            data[1] = np.concatenate((data[1], 
+                [[ticker, side_txt, quantity, price, date, data[2]]]))
+        
+            print("Congratulations, you traded", quantity, "shares", 
+                  "at $", "${:,.2f}".format(price))
     
     return data
 
-
-def trading(buying, price, quantity, k, data):
-    if buying == 1: 
+def trading(ticker, side, quantity, price, k, data0):
+    if side == 1: 
         # Update P/L Statistics: WAP
-        total_value = data[3][0][k] * data[1][k] + price * quantity
-        total_quantity = data[1][k] + quantity
-        data[3][0][k] = total_value / total_quantity
+        # total_value = current quantity * WAP + current price*new quantity
+        total_value = data0[k,1] * data0[k,3] + price * quantity
+        
+        # total quantity = existing quantity + new quantity
+        total_quantity = data0[k, 1] + quantity
+        
+        # WAP = total value / total quantity
+        data0[k,3] = total_value / total_quantity
 
     else:
         # Selling Stock
-        # Update P/L Statistics: RPL
-        data[3][2][k] += quantity * (price - data[3][0][k])
-        data[3][1][k] -= data[3][2][k]
+        # Realized change = quantity * (price - WAP)
+        realized_change = quantity * (price - data0[k, 3])
+        
+        # RPL = quantity*(price - WAP)
+        data0[k, 5] += realized_change
     
-    # Update cash on hand    
-    data[1][count] -= buying*quantity * price
+    #Total P/L
+    data0[k, 6] = data0[k, 4] + data0[k,5]
     
     # Update quantity of stock on hand
-    data[1][k] += buying*quantity
+    data0[k, 1] += side*quantity
     
-    return data
+    return data0
 
-
-def update_blotter(side_index, price, quantity, k, data):
-    # Record trade date
-    now_time = datetime.now(timezone('US/Eastern'))
-    date = now_time.strftime(date_format)
-
-    # Update trade history
-    data[2][0].append(tickers[k]) 
-    data[2][1].append(sides[side_index])    
-    data[2][2].append(quantity)
-    data[2][3].append(price)    
-    data[2][4].append(date) 
+def get_price(ticker):
     
-    return data
-
+    url = "https://finance.yahoo.com/quote/" + ticker
+    stock_page = urlopen(url)
+    soup = BeautifulSoup(stock_page, 'lxml')
+    stock_class = "Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)"
+    price = float(soup.find('span', {'class': stock_class}).text)
     
-def show_blotter(data):
-    # Create empty table
-    tab = tt.Texttable()
+    # For error-checking, allows rapid fluctuation of stock prices
+    # price = round(random.random()*200,2) 
     
-    headings = blot_headers    
-    tab.header(headings)
-    for row in zip(data[2][0][::-1], data[2][1][::-1],  data[2][2][::-1],
-                   data[2][3][::-1], data[2][4][::-1]):
-        tab.add_row(row)
+    return price
 
-    s = tab.draw()
-    print (s)
-    return data
-
-def show_PL(data):
-    tab = tt.Texttable()
+def get_prices(data00):
+    # data00 = data[0][:,0], the list of ticker symbols
+    prices = []
     
-    headings = PL_headers
-    tab.header(headings)
-    current_prices = get_prices()
-    for i in range(count):
-        data[3][1][i] = (current_prices[i] - data[3][0][i]) * data[1][i]
-    for row in zip(tickers, data[1][:-1], current_prices,
-                   data[3][0], data[3][1], data[3][2]):
-        tab.add_row(row)
+    # Get the ticker symbol of each stock, and then obtain its price
+    for i in range(len(data00)):
+        prices.append(get_price(data00[i]))
+    return prices
 
-    s = tab.draw()
-    print (s)
-    return data   
+def show_blotter(data1):
+    
+    if len(data1) > 1:
+        
+        # Sort by date, most recent trade on top
+        flipped = data1[1:, :][::-1]
+        
+        # Create table
+        table = np.vstack((data1[0,:], flipped))
+    
+        print(tabulate(table))
+    else:
+        print(tabulate(data1))
+def show_PL(data0):
 
-# Function to run program
+    # Making sure PL table is not empty
+    if len(data0[:, 0]) > 1:
+        
+        # Assign prices for all stocks
+        data0[1:,2] = get_prices(data0[1:,0])
+        
+        # Update UPL
+        for i in range(1,len(data0[:,0])-1):
+            # UPL = (current price - WAP) * Quantity Held
+            data0[i, 4] = (data0[i, 2] - data0[i,3]) * data0[i,1]
+            
+            # Total P&L = UPL + RPL
+            data0[i, 6] = data0[i, 4] + data0[i, 5]
+    
+    
+    # Sort data by ticker name
+    heading = data0[0,:]
+    data0 = data0[1:,:]
+    
+    #Alphabetize by equity name
+    data0sort = data0[data0[:,0].argsort()]
+    table = np.vstack((heading, data0sort))
+
+    print(tabulate(table))
+    
+
 def Execute():
-    data = new_ledger
     welcome()
     done = False
+    data = np.copy(init_data)
     while not done:
-        data = menu(data)
-        if data[0] == "1":
+        selection = menu()
+        if selection == "1":
             data = trade_menu(data)
-        if data[0] == "2":
-            show_blotter(data)
-        if data[0] == "3":
-            show_PL(data)
-            print ("Total cash on hand is: ${:,.2f}".format(data[1][count]))
-        if data[0] == "4":
+        if selection == "2":
+            show_blotter(data[1])
+        if selection == "3":
+            show_PL(data[0])
+            print ("Total cash on hand is: ${:,.2f}".format(data[2]))
+        if selection == "4":
             done = True
             print("Thank you for trading with us!")
 
