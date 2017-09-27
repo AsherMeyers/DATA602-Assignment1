@@ -13,7 +13,7 @@ RUN pip install bs4 && \
     pip install datetime
 WORKDIR /usr/src/app
 
-COPY requirements.txt ./
+#COPY requirements.txt ./
 #RUN pip install --no-cache-dir -r requirements.txt
 RUN git clone https://github.com/AsherMeyers/DATA602-Assignment1 /usr/src/app/DATA602-Assignment1
 EXPOSE 5000
